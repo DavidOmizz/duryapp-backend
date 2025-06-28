@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -137,7 +138,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles' # Good practice for collectstatic in production
 # Set default storage for media files to BunnyStorage
-DEFAULT_FILE_STORAGE = 'django_bunny_storage.storage.BunnyStorage'
+# DEFAULT_FILE_STORAGE = 'django_bunny_storage.storage.BunnyStorage'
 
 
 
@@ -203,3 +204,17 @@ BUNNY_PULL_ZONE_URL = os.environ.get('BUNNY_PULL_ZONE_URL', 'https://duryapp-cdn
 # MEDIA_URL should point to your CDN Pull Zone for files uploaded via Django's storage system
 # Note: 'media/' will be a subfolder in your Bunny Storage Zone
 MEDIA_URL = BUNNY_PULL_ZONE_URL
+
+
+
+# Your existing STORAGES setting might look like this:
+STORAGES = {
+    # 'default' is for media files, which is already configured for Bunny.net
+    "default": {
+        "BACKEND": "django_bunny_storage.storage.BunnyStorage",
+    },
+    # Add this for static files:
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

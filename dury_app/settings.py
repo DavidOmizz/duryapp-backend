@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3c(wb^vj@q8t3rikk)3a!i^w-ggm%oo(2-f#hyykpyo^gb)94i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -138,7 +138,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles' # Good practice for collectstatic in production
 # Set default storage for media files to BunnyStorage
-# DEFAULT_FILE_STORAGE = 'django_bunny_storage.storage.BunnyStorage'
+DEFAULT_FILE_STORAGE = 'django_bunny_storage.storage.BunnyStorage'
 
 
 

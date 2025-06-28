@@ -14,6 +14,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# from django.contrib import admin
+# from django.urls import path, include
+# from django.conf import settings
+# from django.conf.urls.static import static 
+
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     path('api/', include('app.urls'))
+# ]
+
+# if settings.DEBUG:
+#     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL) 
+#     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# URL configuration for dury_app project.
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -25,5 +42,6 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL) 
-    # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+    # Removed: urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Media files are now served directly from Bunny.net CDN, Django's dev server doesn't need to serve them.

@@ -24,6 +24,7 @@ SECRET_KEY = 'django-insecure-3c(wb^vj@q8t3rikk)3a!i^w-ggm%oo(2-f#hyykpyo^gb)94i
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+# DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -201,6 +202,53 @@ BUNNY_REGION = os.environ.get('BUNNY_REGION', 'jh') # Replace 'jh' with your act
 BUNNY_PULL_ZONE_URL = os.environ.get('BUNNY_PULL_ZONE_URL', 'https://duryapp-cdn.b-cdn.net/') # Replace with your actual CDN Pull Zone Hostname (e.g., https://yourpullzonename.b-cdn.net/)
 
 
+import sys
+import os
+
+# --- START DEBUGGING BLOCK FOR BUNNYSTORAGE ---
+try:
+    from django_bunny_storage.storage import BunnyStorage as LoadedBunnyStorage
+    print(f"DEBUG_SETTINGS: Successfully imported BunnyStorage from {LoadedBunnyStorage.__module__}.", file=sys.stderr)
+
+    # Attempt to instantiate it with your settings
+    _test_bunny_instance = None
+    try:
+        _test_bunny_instance = LoadedBunnyStorage(
+            username=BUNNY_USERNAME,
+            password=BUNNY_PASSWORD,
+            region=BUNNY_REGION,
+            pull_zone_url=BUNNY_PULL_ZONE_URL
+        )
+        print(f"DEBUG_SETTINGS: BunnyStorage instantiated successfully.", file=sys.stderr)
+        if hasattr(_test_bunny_instance, 'url'):
+            print(f"DEBUG_SETTINGS: BunnyStorage instance HAS 'url' method.", file=sys.stderr)
+        else:
+            print(f"DEBUG_SETTINGS: BunnyStorage instance DOES NOT HAVE 'url' method. (CRITICAL!)", file=sys.stderr)
+            print(f"DEBUG_SETTINGS: Type of instance: {type(_test_bunny_instance)}", file=sys.stderr)
+            print(f"DEBUG_SETTINGS: Dir of instance: {dir(_test_bunny_instance)}", file=sys.stderr) # List all methods/attributes
+            
+    except Exception as e:
+        print(f"DEBUG_SETTINGS: ERROR during BunnyStorage instantiation: {e}", file=sys.stderr)
+        print(f"DEBUG_SETTINGS: Please double-check your BUNNY_USERNAME, BUNNY_PASSWORD, BUNNY_REGION, BUNNY_PULL_ZONE_URL values or environment variables.", file=sys.stderr)
+        print(f"DEBUG_SETTINGS: This error during instantiation might cause Django to fall back to a generic Storage.", file=sys.stderr)
+
+except ImportError as e:
+    print(f"DEBUG_SETTINGS: ImportError for django_bunny_storage.storage: {e}", file=sys.stderr)
+    print(f"DEBUG_SETTINGS: Please ensure 'django-bunny-storage' is correctly installed in your virtual environment. Try 'pip install -r requirements.txt'.", file=sys.stderr)
+except Exception as e:
+    print(f"DEBUG_SETTINGS: An unexpected error occurred in settings debug block: {e}", file=sys.stderr)
+
+# Check the default_storage AFTER STORAGES and DEFAULT_FILE_STORAGE are expected to be set
+try:
+    from django.core.files.storage import default_storage
+    print(f"DEBUG_SETTINGS: Django's default_storage is: {default_storage.__class__.__name__} from {default_storage.__class__.__module__}", file=sys.stderr)
+    if not hasattr(default_storage, 'url'):
+        print(f"DEBUG_SETTINGS: Django's default_storage DOES NOT have 'url' method!", file=sys.stderr)
+except Exception as e:
+    print(f"DEBUG_SETTINGS: Error checking default_storage: {e}", file=sys.stderr)
+
+# --- END DEBUGGING BLOCK FOR BUNNYSTORAGE ---
+
 # MEDIA_URL should point to your CDN Pull Zone for files uploaded via Django's storage system
 # Note: 'media/' will be a subfolder in your Bunny Storage Zone
 MEDIA_URL = BUNNY_PULL_ZONE_URL
@@ -209,10 +257,6 @@ MEDIA_URL = BUNNY_PULL_ZONE_URL
 
 # Your existing STORAGES setting might look like this:
 STORAGES = {
-    # 'default' is for media files, which is already configured for Bunny.net
-    "default": {
-        "BACKEND": "django_bunny_storage.storage.BunnyStorage",
-    },
     # Add this for static files:
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

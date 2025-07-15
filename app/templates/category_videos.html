@@ -1,0 +1,114 @@
+{% comment %} <h2>{{ category.name }} - Videos</h2>
+<ul>
+  {% for video in videos %}
+    <li><a href="{{ video.video_url }}" target="_blank">{{ video.title }}</a></li>
+  {% endfor %}
+</ul>
+{% if not videos %}
+  <p>No videos available in this category.</p>
+{% endif %}
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %} {% endcomment %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ category.name }} - Videos</title> {# Dynamic title based on category #}
+</head>
+<body class="min-h-screen bg-black text-gray-100">
+
+    <div class="container mx-auto px-4 py-10 md:py-16">
+        {# Back button to navigate to categories dashboard #}
+        <div class="mb-8">
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center text-lg font-medium text-[#09a7b3] hover:text-blue-500 transition duration-300 ease-in-out">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Categories
+            </a>
+        </div>
+
+        <h2 class="text-4xl font-extrabold text-white mb-10 text-center">{{ category.name }} - Videos</h2>
+
+        {# Django Messages Display #}
+        {% if messages %}
+            <div class="mb-8"> {# Added margin-bottom to messages block #}
+                {% for message in messages %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <strong class="font-bold">Error!</strong> {# You might want to dynamically change "Error!" based on message.level.tag #}
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if videos %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"> {# Responsive grid for video cards #}
+                {% for video in videos %}
+                    <div class="bg-white rounded-xl shadow-xl overflow-hidden transform transition duration-300 hover:scale-105 flex flex-col">
+                        <div class="p-4 bg-gray-900"> {# Dark background for the video player container #}
+                            {# The HTML5 <video> tag for embedding videos #}
+                            <video 
+                                class="w-full h-auto rounded-lg mb-4 bg-black" 
+                                controls {# Shows default video controls #}
+                                controlsList="nodownload" {# IMPORTANT: Prevents download option #}
+                                oncontextmenu="return false;" {# <<<--- Added this line #}
+                                preload="metadata" {# Loads enough to display first frame #}
+                                {% comment %} poster="https://placehold.co/600x400/000000/FFFFFF?text=Loading+Video" {# Placeholder image while video loads #} {% endcomment %}
+                            >
+                                <source src="{{ video.video_url }}" type="video/mp4"> {# Assumes MP4 format #}
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="p-6 flex-grow"> {# Padding for title, flex-grow to push button to bottom #}
+                            <h3 class="text-xl font-semibold text-gray-900">{{ video.title }}</h3>
+                        </div>
+                        {# You could add a description here if your video model has one #}
+                        {# <p class="text-gray-700 text-sm mt-2 p-6 pt-0">{{ video.description }}</p> #}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-10">
+                <p class="text-xl text-gray-400">No videos available in this category yet.</p>
+                <p class="text-lg text-gray-500 mt-2">Please check back later or contact support.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {# SweetAlert2 CDN (if you still need it on this page for other popups) #}
+    {# If not, you can remove this script. #}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {# Your SweetAlert2 function (if used for other purposes on this page) #}
+    <script>
+        // Example: If you had another button that triggered a SweetAlert
+        // function showAlert(title, text, icon) {
+        //     Swal.fire({
+        //         icon: icon,
+        //         title: title,
+        //         text: text,
+        //         confirmButtonColor: '#09a7b3',
+        //         customClass: {
+        //             popup: 'rounded-lg shadow-lg',
+        //             title: 'text-gray-900',
+        //             content: 'text-gray-700',
+        //             confirmButton: 'bg-[#09a7b3] text-white rounded-lg'
+        //         }
+        //     });
+        // }
+    </script>
+    <script>
+        // JavaScript to disable right-click on the entire document
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault(); // This stops the browser's default right-click menu
+        });
+    </script>
+</body>
+</html>

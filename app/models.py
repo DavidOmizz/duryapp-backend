@@ -7,11 +7,18 @@ from django_bunny_storage.storage import BunnyStorage
 import logging
 from django.db.models.signals import post_save # Import for signal
 from django.dispatch import receiver # Import for signal
+from django.contrib.auth.models import User
 
+
+# class Category(models.Model):
+#     name = models.CharField(max_length=100)
+#     password = models.CharField(max_length=100)
+
+#     def __str__(self):
+#         return self.name
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -51,3 +58,15 @@ def update_video_url(sender, instance, created, **kwargs):
         # Save the instance again, but ONLY update the video_url field
         # to prevent infinite recursion on the save method.
         instance.save(update_fields=['video_url'])
+
+
+class UserCategoryAccess(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.category.name}"
+
+class UserSession(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    session_key = models.CharField(max_length=40)

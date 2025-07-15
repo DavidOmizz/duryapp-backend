@@ -23,8 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3c(wb^vj@q8t3rikk)3a!i^w-ggm%oo(2-f#hyykpyo^gb)94i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-# DEBUG = True
+# DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -191,15 +191,16 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
+LOGIN_REDIRECT_URL = 'dashboard'
 
 # -----------------------------------------------------------------
 # Bunny.net Storage Configuration
 # IMPORTANT: For production, use environment variables for BUNNY_USERNAME and BUNNY_PASSWORD.
 # Never hardcode sensitive credentials in production!
-BUNNY_USERNAME = os.environ.get('BUNNY_USERNAME', 'duryapp-videos') # Replace 'duryapp-videos' with your actual Storage Zone Name
-BUNNY_PASSWORD = os.environ.get('BUNNY_PASSWORD', '9365a251-ff99-4eed-8c51ee77778f-3a72-4c42') # Replace with your actual Storage Zone Password (API Key)
+BUNNY_USERNAME = os.environ.get('BUNNY_USERNAME', 'duryapp') # Replace 'duryapp-videos' with your actual Storage Zone Name
+BUNNY_PASSWORD = os.environ.get('BUNNY_PASSWORD', '1d0a60bf-cf38-461d-bbc2ec88d33a-64bc-43cc') # Replace with your actual Storage Zone Password (API Key)
 BUNNY_REGION = os.environ.get('BUNNY_REGION', 'jh') # Replace 'jh' with your actual Storage Zone Region Code (e.g., 'de', 'ny', 'sg', 'jh')
-BUNNY_PULL_ZONE_URL = os.environ.get('BUNNY_PULL_ZONE_URL', 'https://duryapp-cdn.b-cdn.net/') # Replace with your actual CDN Pull Zone Hostname (e.g., https://yourpullzonename.b-cdn.net/)
+BUNNY_PULL_ZONE_URL = os.environ.get('BUNNY_PULL_ZONE_URL', 'https://durycdn.b-cdn.net/') # Replace with your actual CDN Pull Zone Hostname (e.g., https://yourpullzonename.b-cdn.net/)
 
 
 import sys

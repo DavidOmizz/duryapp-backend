@@ -16,6 +16,8 @@ from django.contrib.auth import logout
 from django.contrib.sessions.models import Session
 from .models import Category, Video, UserCategoryAccess, UserSession
 from .forms import SignupForm
+from django.contrib.auth.forms import AuthenticationForm
+from django.views import View
 
 
 
@@ -85,37 +87,82 @@ def signup_view(request):
 #         return super().form_valid(form)
 
 
-class SingleLoginView(LoginView):
-    def form_valid(self, form):
-        user = form.get_user()
+# class SingleLoginView(LoginView):
+#     def form_valid(self, form):
+#         user = form.get_user()
 
-        # Make sure session key exists
-        if not self.request.session.session_key:
-            self.request.session.create()
+#         # Make sure session key exists
+#         if not self.request.session.session_key:
+#             self.request.session.create()
 
-        session_key = self.request.session.session_key
+#         session_key = self.request.session.session_key
 
-        try:
-            existing = UserSession.objects.get(user=user)
+#         try:
+#             existing = UserSession.objects.get(user=user)
 
-            # ✅ Check if old session is still active in the database
-            session_exists = Session.objects.filter(session_key=existing.session_key).exists()
+#             # ✅ Check if old session is still active in the database
+#             session_exists = Session.objects.filter(session_key=existing.session_key).exists()
 
-            if session_exists and existing.session_key != session_key:
-                # Block login — another device is already logged in
-                logout(self.request)
-                messages.error(self.request, "🚫 You are already logged in on another device.")
-                return redirect('login')
-            elif not session_exists:
-                # Old session expired, allow login and update
-                existing.session_key = session_key
-                existing.save()
+#             if session_exists and existing.session_key != session_key:
+#                 # Block login — another device is already logged in
+#                 logout(self.request)
+#                 messages.error(self.request, "🚫 You are already logged in on another device.")
+#                 return redirect('login')
+#             elif not session_exists:
+#                 # Old session expired, allow login and update
+#                 existing.session_key = session_key
+#                 existing.save()
 
-        except UserSession.DoesNotExist:
-            # First login — create session record
-            UserSession.objects.create(user=user, session_key=session_key)
+#         except UserSession.DoesNotExist:
+#             # First login — create session record
+#             UserSession.objects.create(user=user, session_key=session_key)
 
-        return super().form_valid(form)
+#         return super().form_valid(form)
+
+class SingleLoginView(View):
+    def get(self, request):
+        form = AuthenticationForm()
+        return render(request, 'login.html', {'form': form})
+
+    def post(self, request):
+        form = AuthenticationForm(request, data=request.POST)
+
+        if form.is_valid():
+            user = form.get_user()
+
+            # ✅ Check if user already has an active session
+            try:
+                existing = UserSession.objects.get(user=user)
+                session_exists = Session.objects.filter(session_key=existing.session_key).exists()
+
+                if session_exists:
+                    # 🚫 BLOCK login — someone is already logged in
+                    messages.error(request, "🚫 You're already logged in on another device.")
+                    return redirect('login')
+
+                else:
+                    # Old session is expired — delete and allow login
+                    existing.delete()
+
+            except UserSession.DoesNotExist:
+                pass  # No existing session — proceed
+
+            # 🔐 Manually log user in
+            login(request, user)
+
+            # 💾 Force session creation if missing
+            if not request.session.session_key:
+                request.session.create()
+
+            # Save new session to UserSession
+            UserSession.objects.update_or_create(user=user, defaults={
+                'session_key': request.session.session_key
+            })
+
+            return redirect('dashboard')  # or your desired view
+
+        else:
+            return render(request, 'login.html', {'form': form})
 
 
 def logout_view(request):

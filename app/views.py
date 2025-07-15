@@ -51,11 +51,45 @@ def signup_view(request):
 
 #         return super().form_valid(form)
 
+# class SingleLoginView(LoginView):
+#     def form_valid(self, form):
+#         user = form.get_user()
+
+#         # 👇 Force session key to be created if not already
+#         if not self.request.session.session_key:
+#             self.request.session.create()
+
+#         session_key = self.request.session.session_key
+
+#         try:
+#             existing = UserSession.objects.get(user=user)
+
+#             # Check if the stored session still exists in DB
+#             if existing.session_key != session_key:
+#                 session_exists = Session.objects.filter(session_key=existing.session_key).exists()
+
+#                 if session_exists:
+#                     # Old session is still alive — block login
+#                     logout(self.request)
+#                     messages.error(self.request, "❌ You are already logged in on another device. Please log out there first.")
+#                     return redirect('login')
+#                 else:
+#                     # Old session expired — update to new session
+#                     existing.session_key = session_key
+#                     existing.save()
+
+#         except UserSession.DoesNotExist:
+#             # ✅ Safe now — session_key is guaranteed
+#             UserSession.objects.create(user=user, session_key=session_key)
+
+#         return super().form_valid(form)
+
+
 class SingleLoginView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
 
-        # 👇 Force session key to be created if not already
+        # Make sure session key exists
         if not self.request.session.session_key:
             self.request.session.create()
 
@@ -64,22 +98,21 @@ class SingleLoginView(LoginView):
         try:
             existing = UserSession.objects.get(user=user)
 
-            # Check if the stored session still exists in DB
-            if existing.session_key != session_key:
-                session_exists = Session.objects.filter(session_key=existing.session_key).exists()
+            # ✅ Check if old session is still active in the database
+            session_exists = Session.objects.filter(session_key=existing.session_key).exists()
 
-                if session_exists:
-                    # Old session is still alive — block login
-                    logout(self.request)
-                    messages.error(self.request, "❌ You are already logged in on another device. Please log out there first.")
-                    return redirect('login')
-                else:
-                    # Old session expired — update to new session
-                    existing.session_key = session_key
-                    existing.save()
+            if session_exists and existing.session_key != session_key:
+                # Block login — another device is already logged in
+                logout(self.request)
+                messages.error(self.request, "🚫 You are already logged in on another device.")
+                return redirect('login')
+            elif not session_exists:
+                # Old session expired, allow login and update
+                existing.session_key = session_key
+                existing.save()
 
         except UserSession.DoesNotExist:
-            # ✅ Safe now — session_key is guaranteed
+            # First login — create session record
             UserSession.objects.create(user=user, session_key=session_key)
 
         return super().form_valid(form)
